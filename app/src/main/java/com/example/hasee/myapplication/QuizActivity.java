@@ -1,7 +1,9 @@
 package com.example.hasee.myapplication;
 
 import android.os.Bundle;
+import android.os.PersistableBundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
@@ -15,7 +17,9 @@ public class QuizActivity extends AppCompatActivity {
     ImageButton mNextButton;
     ImageButton mPrevButton;
     TextView mQuestionTextView;
-    int currentIndex = 0;
+    int mCurrentIndex = 0;
+    private static final String KEY_INDEX="index";
+    private static final String TAG="QuizActivity";
     TrueFalse[] mAnswerKey = new TrueFalse[]{
             new TrueFalse(R.string.question_oceans, true),
             new TrueFalse(R.string.question_mideast, false),
@@ -28,14 +32,19 @@ public class QuizActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_quiz);
+
+
         mQuestionTextView = (TextView) findViewById(R.id.question_text_view);
         mQuestionTextView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                currentIndex = (currentIndex + 1) % mAnswerKey.length;
+                mCurrentIndex = (mCurrentIndex + 1) % mAnswerKey.length;
                 updateQuestion();
             }
         });
+        if (savedInstanceState!=null) {
+            mCurrentIndex = savedInstanceState.getInt(KEY_INDEX,0);
+        }
         updateQuestion();
         mTrueButton = (Button) findViewById(R.id.true_button);
         mTrueButton.setOnClickListener(new View.OnClickListener() {
@@ -57,7 +66,7 @@ public class QuizActivity extends AppCompatActivity {
         mNextButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                currentIndex = (currentIndex + 1) % mAnswerKey.length;
+          //      mCurrentIndex = (mCurrentIndex + 1) % mAnswerKey.length;
                 updateQuestion();
             }
 
@@ -67,10 +76,10 @@ public class QuizActivity extends AppCompatActivity {
         mPrevButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (currentIndex == 0) {
-                    currentIndex = mAnswerKey.length-1;
+                if (mCurrentIndex == 0) {
+                    mCurrentIndex = mAnswerKey.length-1;
                 } else {
-                    currentIndex = currentIndex - 1;
+                    mCurrentIndex = mCurrentIndex - 1;
                 }
                 updateQuestion();
             }
@@ -78,9 +87,17 @@ public class QuizActivity extends AppCompatActivity {
         });
     }
 
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        Log.i(TAG,"onSaveInstanceState");
+        outState.putInt(KEY_INDEX,mCurrentIndex);
+    }
+
+
     private void checkAnswer(boolean userPressedTrue) {
-        boolean answerIstrue = mAnswerKey[currentIndex].isTrueQuestion();
-        int messageResId = 0;
+        boolean answerIstrue = mAnswerKey[mCurrentIndex].isTrueQuestion();
+        int messageResId;
         if (answerIstrue == userPressedTrue) {
             messageResId = R.string.correct_toast;
         } else {
@@ -90,7 +107,7 @@ public class QuizActivity extends AppCompatActivity {
     }
 
     private void updateQuestion() {
-        int question = mAnswerKey[currentIndex].getQuestion();
+        int question = mAnswerKey[mCurrentIndex].getQuestion();
         mQuestionTextView.setText(question);
     }
 
